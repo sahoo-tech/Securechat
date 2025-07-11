@@ -276,6 +276,4 @@ If you encounter any issues or have questions:
 
 **Made with ❤️ for privacy and security**
 
-[Report Bug](https://github.com/yourusername/securechat/issues) · [Request Feature](https://github.com/yourusername/securechat/issues) · [Documentation](https://github.com/yourusername/securechat/wiki)
-
 </div>
