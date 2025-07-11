@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureChat - Anonymous Encrypted Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #5855eb;
+            --secondary-color: #8b5cf6;
+            --background-dark: #0f0f23;
+            --background-card: #1a1a2e;
+            --background-input: #16213e;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --border-color: #27272a;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-secondary: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--background-dark);
+        }
+
+        .bg-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Main Container */
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo i {
+            color: var(--primary-color);
+        }
+
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--success-color);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .welcome-content {
+            max-width: 600px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-width: 160px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--background-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+            animation-delay: 0.2s;
+            animation-fill-mode: both;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--background-card);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 450px;
+            border: 1px solid var(--border-color);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--background-input);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        /* Chat Interface */
+        .chat-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+        }
+
+        .chat-header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .room-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .room-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .room-code {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: rgba(15, 15, 35, 0.5);
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 12px;
+            border-left: 3px solid var(--primary-color);
+            animation: messageSlideIn 0.3s ease;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-author {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .message-content {
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .input-container {
+            background: var(--background-card);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1rem;
+            background: var(--background-input);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            resize: vertical;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .send-button {
+            padding: 1rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Success Modal */
+        .success-modal .modal-content {
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: var(--success-color);
+            margin-bottom: 1rem;
+            animation: successPulse 0.6s ease;
+        }
+
+        @keyframes successPulse {
+            from { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            to { transform: scale(1); }
+        }
+
+        .otp-code {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-family: 'Courier New', monospace;
+            background: var(--background-input);
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            letter-spacing: 0.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .welcome-title {
+                font-size: 2.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                margin: 1rem;
+                width: calc(100% - 2rem);
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--background-card);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="bg-particles" id="particles"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                SecureChat
+            </div>
+            <div class="room-info" id="roomInfo" style="display: none;">
+                <div class="status-indicator"></div>
+                <span id="connectionStatus">Connected</span>
+            </div>
+        </header>
+
+        <!-- Welcome Screen -->
+        <main class="welcome-screen" id="welcomeScreen">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Anonymous. Secure. Private.</h1>
+                <p class="welcome-subtitle">
+                    Create or join encrypted chat rooms with complete anonymity. 
+                    No registration required, messages disappear forever.
+                </p>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="openModal('createRoomModal')">
+                        <i class="fas fa-plus"></i> Create Room
+                    </button>
+                    <button class="btn btn-secondary" onclick="openModal('joinRoomModal')">
+                        <i class="fas fa-sign-in-alt"></i> Join Room
+                    </button>
+                </div>
+
+                <div class="features">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h3 class="feature-title">End-to-End Encryption</h3>
+                        <p class="feature-description">
+                            All messages are encrypted before leaving your device. Only room members can decrypt them.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-secret"></i>
+                        </div>
+                        <h3 class="feature-title">Complete Anonymity</h3>
+                        <p class="feature-description">
+                            No accounts, no email, no phone numbers. Choose any nickname and start chatting instantly.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <h3 class="feature-title">Ephemeral Messages</h3>
+                        <p class="feature-description">
+                            Messages are never stored on servers. When you leave, your messages disappear forever.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chat Interface -->
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <div class="room-details">
+                    <div class="room-name" id="currentRoomName">Room Name</div>
+                    <div class="room-code">Code: <span id="currentRoomCode">12345</span></div>
+                </div>
+                <div class="chat-actions">
+                    <button class="btn btn-secondary" onclick="copyRoomCode()">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                    <button class="btn btn-secondary" onclick="leaveRoom()">
+                        <i class="fas fa-sign-out-alt"></i> Leave
+                    </button>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <!-- Messages will be inserted here -->
+            </div>
+
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Type your message..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-button" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Room Modal -->
+    <div class="modal" id="createRoomModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Room</h2>
+                <button class="close-btn" onclick="closeModal('createRoomModal')">&times;</button>
+            </div>
+            <form onsubmit="createRoom(event)">
+                <div class="form-group">
+                    <label class="form-label">Room Name</label>
+                    <input type="text" class="form-input" id="roomName" placeholder="Enter room name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Your Nickname</label>
+                    <input type="text" class="form-input" id="creatorNickname" placeholder="Enter your nickname" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createRoomModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="createBtnText">Create Room</span>
+                        <div class="loading" id="createLoading" style="display: none;"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Join Room Modal -->
+    <div class="modal" id="joinRoomModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Join Room</h2>
+                <button class="close-btn" onclick="closeModal('joinRoomModal')">&times;</button>
+            </div>
+            <form onsubmit="joinRoom(event)">
+                <div class="form-group">
+                    <label class="form-label">Room Code</label>
+                    <input type="text" class="form-input" id="roomCode" placeholder="Enter 5-digit room code" maxlength="5" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Your Nickname</label>
+                    <input type="text" class="form-input" id="joinerNickname" placeholder="Enter your nickname" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('joinRoomModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="joinBtnText">Join Room</span>
+                        <div class="loading" id="joinLoading" style="display: none;"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal success-modal" id="successModal">
+        <div class="modal-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="modal-title">Room Created Successfully!</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Share this code with others to invite them to your room:
+            </p>
+            <div class="otp-code" id="generatedOTP">12345</div>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem;">
+                Keep this code safe - you'll need it to rejoin the room.
+            </p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="copyOTP()">
+                    <i class="fas fa-copy"></i> Copy Code
+                </button>
+                <button class="btn btn-primary" onclick="enterRoom()">
+                    Enter Room <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentRoom = null;
+        let currentUser = null;
+        let generatedRooms = new Set(); // To track generated OTPs
+
+        // Initialize particles animation
+        function initParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                createParticle(particlesContainer);
+            }
+        }
+
+        function createParticle(container) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const size = Math.random() * 4 + 1;
+            const startX = Math.random() * window.innerWidth;
+            const duration = Math.random() * 10 + 10;
+            const delay = Math.random() * 5;
+
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = startX + 'px';
+            particle.style.animationDuration = duration + 's';
+            particle.style.animationDelay = delay + 's';
+
+            container.appendChild(particle);
+
+            // Remove and recreate particle after animation
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.remove();
+                    createParticle(container);
+                }
+            }, (duration + delay) * 1000);
+        }
+
+        // Generate unique 5-digit OTP
+        function generateUniqueOTP() {
+            let otp;
+            do {
+                otp = Math.floor(10000 + Math.random() * 90000).toString();
+            } while (generatedRooms.has(otp));
+            
+            generatedRooms.add(otp);
+            return otp;
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Create room function
+        async function createRoom(event) {
+            event.preventDefault();
+            
+            const roomName = document.getElementById('roomName').value.trim();
+            const nickname = document.getElementById('creatorNickname').value.trim();
+            
+            if (!roomName || !nickname) return;
+
+            // Show loading
+            document.getElementById('createBtnText').style.display = 'none';
+            document.getElementById('createLoading').style.display = 'inline-block';
+
+            // Simulate API call delay
+            setTimeout(() => {
+                const otp = generateUniqueOTP();
+                
+                currentRoom = {
+                    name: roomName,
+                    code: otp,
+                    creator: nickname
+                };
+                
+                currentUser = nickname;
+
+                // Hide loading
+                document.getElementById('createBtnText').style.display = 'inline';
+                document.getElementById('createLoading').style.display = 'none';
+
+                // Show success modal
+                document.getElementById('generatedOTP').textContent = otp;
+                closeModal('createRoomModal');
+                openModal('successModal');
+
+                // Clear form
+                document.getElementById('roomName').value = '';
+                document.getElementById('creatorNickname').value = '';
+            }, 1500);
+        }
+
+        // Join room function
+        async function joinRoom(event) {
+            event.preventDefault();
+            
+            const roomCode = document.getElementById('roomCode').value.trim();
+            const nickname = document.getElementById('joinerNickname').value.trim();
+            
+            if (!roomCode || !nickname || roomCode.length !== 5) return;
+
+            // Show loading
+            document.getElementById('joinBtnText').style.display = 'none';
+            document.getElementById('joinLoading').style.display = 'inline-block';
+
+            // Simulate API call delay
+            setTimeout(() => {
+                if (generatedRooms.has(roomCode)) {
+                    currentRoom = {
+                        name: `Room ${roomCode}`,
+                        code: roomCode
+                    };
+                    currentUser = nickname;
+
+                    // Hide loading
+                    document.getElementById('joinBtnText').style.display = 'inline';
+                    document.getElementById('joinLoading').style.display = 'none';
+
+                    closeModal('joinRoomModal');
+                    enterRoom();
+
+                    // Clear form
+                    document.getElementById('roomCode').value = '';
+                    document.getElementById('joinerNickname').value = '';
+                } else {
+                    // Hide loading
+                    document.getElementById('joinBtnText').style.display = 'inline';
+                    document.getElementById('joinLoading').style.display = 'none';
+                    
+                    alert('Room not found. Please check the room code.');
+                }
+            }, 1500);
+        }
+
+        // Enter room function
+        function enterRoom() {
+            if (!currentRoom) return;
+
+            closeModal('successModal');
+            
+            // Update UI
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+            document.getElementById('roomInfo').style.display = 'flex';
+            
+            document.getElementById('currentRoomName').textContent = currentRoom.name;
+            document.getElementById('currentRoomCode').textContent = currentRoom.code;
+
+            // Add welcome message
+            addMessage('System', 'Welcome to the room! Your messages are encrypted and anonymous.', true);
+            
+            // Focus on message input
+            document.getElementById('messageInput').focus();
+        }
+
+        // Copy functions
+                // Copy functions
+        function copyOTP() {
+            const otp = document.getElementById('generatedOTP').textContent;
+            navigator.clipboard.writeText(otp).then(() => {
+                // Show success feedback
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.style.background = 'var(--success-color)';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        function copyRoomCode() {
+            const code = document.getElementById('currentRoomCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                // Show success feedback
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                }, 2000);
+            });
+        }
+
+        // Leave room function
+        function leaveRoom() {
+            if (confirm('Are you sure you want to leave this room? You will need the room code to rejoin.')) {
+                currentRoom = null;
+                currentUser = null;
+                
+                // Clear messages
+                document.getElementById('messagesContainer').innerHTML = '';
+                
+                // Show welcome screen
+                document.getElementById('chatContainer').style.display = 'none';
+                document.getElementById('welcomeScreen').style.display = 'flex';
+                document.getElementById('roomInfo').style.display = 'none';
+            }
+        }
+
+        // Message functions
+        function addMessage(author, content, isSystem = false) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            if (isSystem) {
+                messageDiv.style.borderLeftColor = 'var(--success-color)';
+            }
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-author">${author}</span>
+                    <span class="message-time">${timeString}</span>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+            
+            if (!content || !currentUser) return;
+
+            // Add message to chat
+            addMessage(currentUser, content);
+            
+            // Clear input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            messageInput.focus();
+
+            // Simulate receiving messages from other users (for demo)
+            if (Math.random() > 0.7) {
+                setTimeout(() => {
+                    const responses = [
+                        "That's interesting!",
+                        "I agree with you.",
+                        "Thanks for sharing that.",
+                        "Good point!",
+                        "What do you think about this?",
+                        "I see what you mean.",
+                        "That makes sense."
+                    ];
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    addMessage('Anonymous User', randomResponse);
+                }, Math.random() * 3000 + 1000);
+            }
+        }
+
+        // Auto-resize textarea
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('messageInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize particles
+            initParticles();
+
+            // Message input event listeners
+            const messageInput = document.getElementById('messageInput');
+            
+            messageInput.addEventListener('input', autoResizeTextarea);
+            
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Modal close on outside click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // Room code input formatting
+            const roomCodeInput = document.getElementById('roomCode');
+            roomCodeInput.addEventListener('input', function(e) {
+                // Only allow numbers
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+
+            // Prevent form submission on enter for textareas
+            document.querySelectorAll('textarea').forEach(textarea => {
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+
+        // Window resize handler for particles
+        window.addEventListener('resize', function() {
+            // Reinitialize particles on window resize
+            const particlesContainer = document.getElementById('particles');
+            particlesContainer.innerHTML = '';
+            initParticles();
+        });
+
+        // Add CSS for success button state
+        const additionalCSS = `
+            .btn-success {
+                background: var(--success-color) !important;
+                border-color: var(--success-color) !important;
+            }
+            
+            .message-content {
+                word-wrap: break-word;
+                white-space: pre-wrap;
+            }
+            
+            /* Enhanced animations */
+            @keyframes slideInFromBottom {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .chat-container {
+                animation: slideInFromBottom 0.5s ease-out;
+            }
+            
+            /* Typing indicator */
+            .typing-indicator {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 1rem;
+                color: var(--text-muted);
+                font-style: italic;
+            }
+            
+            .typing-dots {
+                display: flex;
+                gap: 2px;
+            }
+            
+            .typing-dot {
+                width: 4px;
+                height: 4px;
+                background: var(--primary-color);
+                border-radius: 50%;
+                animation: typingDot 1.4s infinite;
+            }
+            
+            .typing-dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            
+            .typing-dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            
+            @keyframes typingDot {
+                0%, 60%, 100% {
+                    opacity: 0.3;
+                    transform: scale(1);
+                }
+                30% {
+                    opacity: 1;
+                    transform: scale(1.2);
+                }
+            }
+            
+            /* Mobile improvements */
+            @media (max-width: 480px) {
+                .welcome-title {
+                    font-size: 2rem;
+                }
+                
+                .modal-content {
+                    padding: 1.5rem;
+                }
+                
+                .chat-header {
+                    padding: 1rem;
+                }
+                
+                .input-container {
+                    padding: 1rem;
+                }
+                
+                .chat-actions {
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                
+                .chat-actions .btn {
+                    padding: 0.5rem 1rem;
+                    font-size: 0.875rem;
+                }
+            }
+        `;
+
+        // Inject additional CSS
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = additionalCSS;
+        document.head.appendChild(styleSheet);
+
+        // Add some demo functionality for better UX
+        function simulateTyping() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <span>Someone is typing</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Remove typing indicator after a delay
+            setTimeout(() => {
+                if (typingDiv.parentNode) {
+                    typingDiv.remove();
+                }
+            }, 2000);
+        }
+
+        // Enhanced message sending with typing simulation
+        const originalSendMessage = sendMessage;
+        sendMessage = function() {
+            originalSendMessage();
+            
+            // Occasionally show typing indicator before auto-response
+            if (Math.random() > 0.8) {
+                setTimeout(() => {
+                    simulateTyping();
+                }, Math.random() * 2000 + 500);
+            }
+        };
+    </script>
+</body>
+</html>
